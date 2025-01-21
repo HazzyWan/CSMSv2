@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET_KEY } = process.env;
 
-const authMiddleware = (req, res, next) => {
+// Middleware for authenticating users
+const isAuthenticated = (req, res, next) => {
   const token = req.header('Authorization');
   if (!token) return res.status(401).json({ message: 'Access Denied' });
 
@@ -14,5 +15,4 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware;
-
+module.exports = { isAuthenticated };

@@ -8,6 +8,7 @@ const userRoutes = require('./routes/userRoutes');
 const vehicleRoutes = require('./routes/vehicleRoutes');
 const fineRoutes = require('./routes/fineRoutes');
 const postRoutes = require('./routes/postRoutes');
+const { registerUser, loginUser } = require('./controllers/authController');  // Adjust the import based on your file structure
 
 // Initialize the app
 const app = express();
@@ -96,3 +97,9 @@ app.use(express.static(path.join(__dirname, '../frontend/src/pages')));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/src/pages/landing.html'));
 });
+
+// Register route
+app.post('/register', registerUser);  // Use the registerUser function
+
+// Login route
+app.post('/login', loginUser);  // Use the loginUser function

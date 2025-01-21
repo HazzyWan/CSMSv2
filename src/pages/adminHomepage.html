@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campus Security - Admin Dashboard</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Roboto', sans-serif;
+        background-color: #0f172a;
+        color: #fff;
+      }
+      .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: #1e293b;
+      }
+      .navbar .logo {
+        display: flex;
+        align-items: center;
+        font-size: 1.2em;
+        font-weight: 500;
+      }
+      .navbar .logo i {
+        margin-right: 10px;
+      }
+      .navbar .nav-links {
+        display: flex;
+        gap: 20px;
+        margin-left: auto;
+        margin-right: 20px;
+      }
+      .navbar .nav-links a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .navbar .user-info {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+      }
+      .navbar .user-info .user-icon {
+        width: 35px;
+        height: 35px;
+        background-color: #3b82f6;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 700;
+      }
+      .navbar .user-info .dropdown {
+        display: none;
+        position: absolute;
+        top: 50px;
+        right: 0;
+        background-color: #1e293b;
+        border-radius: 5px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .navbar .user-info .dropdown a {
+        display: block;
+        padding: 10px 20px;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .navbar .user-info .dropdown a:hover {
+        background-color: #3b82f6;
+      }
+      .content {
+        padding: 20px;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .content h2 {
+        font-size: 1.5em;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .update-card {
+        background-color: #1e293b;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 20px;
+      }
+      .update-card img {
+        width: 100%;
+        height: auto;
+      }
+      .update-card .card-content {
+        padding: 15px;
+      }
+      .update-card .card-content .title {
+        display: flex;
+        align-items: center;
+        font-size: 1.1em;
+        font-weight: 500;
+        margin-bottom: 10px;
+      }
+      .update-card .card-content .title i {
+        margin-right: 10px;
+        color: #10b981;
+      }
+      .update-card .card-content .description {
+        font-size: 0.9em;
+        margin-bottom: 10px;
+      }
+      .update-card .card-content .meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8em;
+        color: #9ca3af;
+      }
+      .post-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #4f46e5;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2em;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      #loading-spinner {
+        text-align: center;
+        font-size: 1em;
+        color: #9ca3af;
+      }
+    </style>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // Role-based Authentication (ensure user is an admin)
+        const role = localStorage.getItem('role');
+ 
+        // Dropdown toggle functionality
+        document.querySelector('.user-info').addEventListener('click', function () {
+          const dropdown = document.querySelector('.user-info .dropdown');
+          dropdown.style.display =
+            dropdown.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Fetch Updates
+        fetchUpdates();
+
+        function fetchUpdates() {
+          const spinner = document.getElementById('loading-spinner');
+          spinner.style.display = 'block';
+
+          fetch('/api/updates') // Replace with actual API endpoint
+            .then((response) => response.json())
+            .then((data) => {
+              spinner.style.display = 'none';
+              const content = document.querySelector('.content');
+              if (data.length === 0) {
+                content.innerHTML +=
+                  '<p style="text-align:center;">No updates available.</p>';
+              } else {
+                data.forEach((update) => {
+                  const updateCard = createUpdateCard(update);
+                  content.appendChild(updateCard);
+                });
+              }
+            })
+            .catch((error) => {
+              console.error('Error fetching updates:', error);
+              spinner.style.display = 'none';
+              document.querySelector('.content').innerHTML =
+                '<p style="text-align:center; color: red;">Failed to load updates.</p>';
+            });
+        }
+
+        function createUpdateCard(update) {
+          const card = document.createElement('div');
+          card.className = 'update-card';
+
+          card.innerHTML = ` 
+            <div class="card-content">
+                <div class="title">
+                    <i class="fas fa-info-circle"></i>${update.title}
+                </div>
+                <div class="description">${update.description}</div>
+                <div class="meta">
+                    <span>${update.date}</span>
+                    <span>${update.author}</span>
+                </div>
+            </div>
+          `;
+          return card;
+        }
+
+        // Logout functionality
+        document.querySelector('a[href="landing.html"]').addEventListener('click', function () {
+          localStorage.clear();
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="logo">
+        <i class="fas fa-shield-alt"></i>
+        Campus Security
+      </div>
+      <div class="nav-links">
+        <a href="adminHomepage.html">Home</a>
+        <a href="vehicleA.html">Vehicle</a>
+      </div>
+      <div class="user-info">
+        <div class="user-icon">A</div>
+        <div>
+          <div>Admin Name</div>
+          <div style="font-size: 0.8em; color: #9ca3af;">Admin</div>
+        </div>
+        <div class="dropdown">
+          <a href="profileA.html">Profile</a>
+          <a href="landing.html">Logout</a>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <h2>Recent Updates</h2>
+      <div id="loading-spinner">Loading updates...</div>
+    </div>
+    <!-- Add '+' Button to navigate to new post page -->
+    <button class="post-button" onclick="window.location.href='newpostA.html'">
+      +
+    </button>
+  </body>
+</html>

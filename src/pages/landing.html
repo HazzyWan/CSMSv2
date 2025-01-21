@@ -115,155 +115,144 @@
 
     <script>
         // Default form type
-        let currentForm = 'login'; 
-
+        let currentForm = 'login';
+    
         // Function to toggle between login and signup form
         function toggleForm(formType) {
             currentForm = formType;
             updateTabStyles();
             updateFormFields();
         }
-
+    
         // Function to update tab styles
         function updateTabStyles() {
             const tabs = document.querySelectorAll('.tabs div');
-            tabs.forEach(tab => tab.classList.remove('active')); // Remove active class from all tabs
+            tabs.forEach(tab => tab.classList.remove('active'));
             const activeTab = document.querySelector(`.tabs .${currentForm}`);
-            activeTab.classList.add('active'); // Add active class to current tab
+            activeTab.classList.add('active');
         }
-
+    
         // Function to update form fields based on login or signup
         function updateFormFields() {
             const formContainer = document.getElementById('auth-form');
             formContainer.innerHTML = ''; // Clear existing fields
-
+    
             if (currentForm === 'login') {
                 formContainer.innerHTML = `
-                    <input placeholder="Email" type="email" required/>
-                    <input placeholder="Password" type="password" required/>
+                    <input id="email" name="email" placeholder="Email" type="email" required />
+                    <input id="password" name="password" placeholder="Password" type="password" required />
                     <button type="submit">Login</button>
                 `;
             } else {
                 formContainer.innerHTML = `
-                    <input placeholder="First Name" type="text" required/>
-                    <input placeholder="Last Name" type="text" required/>
-                    <select id="role">
-                        <option>Student/Staff</option>
-                        <option>Officer</option>
-                        <option>Admin</option>
+                    <input name="firstName" placeholder="First Name" type="text" required />
+                    <input name="lastName" placeholder="Last Name" type="text" required />
+                    <select name="role" id="role">
+                        <option value="Student/Staff">Student/Staff</option>
+                        <option value="Officer">Officer</option>
+                        <option value="Admin">Admin</option>
                     </select>
-                    <input placeholder="Email" type="email" required/>
-                    <input placeholder="Password" type="password" required/>
+                    <input name="email" placeholder="Email" type="email" required />
+                    <input name="password" placeholder="Password" type="password" required />
                     <button type="submit">Sign Up</button>
                 `;
             }
-
-            // Re-attach the event listener for form submission
-            const form = formContainer.querySelector('form');
-            if (form) {
-                form.addEventListener('submit', currentForm === 'login' ? handleLogin : handleSignUp);
-            }
+    
+            formContainer.onsubmit = currentForm === 'login' ? handleLogin : handleSignUp;
         }
-
+    
         // Handle login form submission
         async function handleLogin(event) {
             event.preventDefault();
-            const email = document.querySelector('input[placeholder="Email"]').value;
-            const password = document.querySelector('input[placeholder="Password"]').value;
-
+    
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('error-message');
-            const loadingMessage = document.getElementById('loading-message');
-            errorMessage.textContent = '';
-            loadingMessage.textContent = 'Processing...';
-
-            if (!email || !password) {
-                errorMessage.textContent = 'Please enter both email and password.';
-                loadingMessage.textContent = '';
-                return;
-            }
-
+    
             try {
-                const response = await fetch('http://localhost:4000/login', {
+                const response = await fetch('http://localhost:4000/login', {  // Change to your backend login endpoint
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password }),
+                    body: JSON.stringify({ email, password })
                 });
 
-                const data = await response.json();
+                const result = await response.json();
 
                 if (response.ok) {
-                    // Save the JWT token in localStorage
-                    localStorage.setItem('supabase_token', data.token);
-                    alert('Login successful!');
-                    window.location.href = 'dashboard.html'; // Redirect to the user dashboard
+                    localStorage.setItem('token', result.token);
+                    const role = result.user.role || 'Student/Staff';
+                    localStorage.setItem('role', role);
+                    localStorage.setItem('userId', result.user.userid);
+
+                    // Redirect based on role
+                    if (role === 'Admin') {
+                        window.location.href = 'adminHomepage.html';
+                    } else if (role === 'Officer') {
+                        window.location.href = 'officerHomepage.html';
+                    } else {
+                        window.location.href = 'userHomepage.html';
+                    }
                 } else {
-                    errorMessage.textContent = `Login failed: ${data.message}`;
+                    errorMessage.textContent = result.error || 'Login failed. Please check your credentials.';
                 }
             } catch (error) {
-                console.error('Error during login:', error);
-                errorMessage.textContent = 'An error occurred. Please try again later.';
-            } finally {
-                loadingMessage.textContent = ''; // Hide loading message
+                console.error('Login Error:', error);
+                errorMessage.textContent = 'An unexpected error occurred. Please try again later.';
             }
         }
+    
+        // Handle signup form submission
+        async function handleSignUp(event) {
+        event.preventDefault();
 
-    // Handle signup form submission
-    async function handleSignUp(event) {
-    event.preventDefault(); // Prevent page refresh
+        // Get the form data
+        const firstName = document.querySelector('input[name="firstName"]').value;
+        const lastName = document.querySelector('input[name="lastName"]').value;
+        const email = document.querySelector('input[name="email"]').value;
+        const password = document.querySelector('input[name="password"]').value;
+        const role = document.querySelector('select[name="role"]').value;
 
-    const firstName = document.querySelector('input[placeholder="First Name"]').value;
-    const lastName = document.querySelector('input[placeholder="Last Name"]').value;
-    const email = document.querySelector('input[placeholder="Email"]').value;
-    const password = document.querySelector('input[placeholder="Password"]').value;
-    const role = document.getElementById('role').value;
+        // UI elements for showing loading and error messages
+        const errorMessage = document.getElementById('error-message');
+        const loadingMessage = document.getElementById('loading-message');
+    
+        try {
+            // Show loading message
+            loadingMessage.textContent = 'Processing...';
 
-    const errorMessage = document.getElementById('error-message');
-    const loadingMessage = document.getElementById('loading-message');
-    errorMessage.textContent = '';
-    loadingMessage.textContent = 'Processing...';
+            // Send the registration request to the backend
+            const response = await fetch('http://localhost:4000/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ firstName, lastName, email, password, role })
+            });
 
-    if (!firstName || !lastName || !email || !password || !role) {
-        alert("All fields are required!");
-        loadingMessage.textContent = ''; // Hide loading message
-        return; // Stop the form submission if any field is missing
-    }
-
-    // Log the data before sending to the backend for debugging
-    console.log('Sign Up Data:', {
-        firstName, lastName, email, password, role
-    });
-
-    try {
-        const response = await fetch('http://localhost:4000/register', {  // Change endpoint to '/register'
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, firstName, lastName, role }),
-        });
-
-        // Check if the response is ok
-        if (response.ok) {
+            // Parse the response from the backend
             const data = await response.json();
-            console.log('Server Response:', data); // Log server response
 
-            if (data.success) {
-                alert('Signup successful! You can now log in.');
-                toggleForm('login'); // Switch to login form
+            // Check for success and display appropriate message
+            if(response.status === 400 && data.error.includes("Email already registered")){
+                errorMessage.textContent = "This email is already registered. Please use a different email.";
+            } else if (response.ok) {
+                loadingMessage.textContent = 'Registration successful! You can now login.';
+                // Optionally, redirect the user to login page after success
+                // window.location.href = 'login.html';
             } else {
-                alert(`Signup failed: ${data.error || data.message}`);
+                errorMessage.textContent = data.message || 'Registration failed.';
             }
-        } else {
-            alert('Error: Unable to connect to the server. Please try again later.');
+        } catch (error) {
+            // Handle unexpected errors
+            console.error('Sign Up Error:', error);
+            errorMessage.textContent = 'An unexpected error occurred. Please try again.';
+        } finally {
+            // Hide loading message after processing
+            loadingMessage.textContent = '';
         }
-    } catch (error) {
-        console.error('Error during signup:', error);
-        alert('An error occurred. Please try again later.');
-    } finally {
-        loadingMessage.textContent = ''; // Hide loading message
     }
-}
 
-        // Initialize the page with login form
-        toggleForm('login'); // Default form is login
-    </script>
+    
+        // Initialize the page with the correct form
+        updateFormFields();
+    </script>    
 </body>
 </html>

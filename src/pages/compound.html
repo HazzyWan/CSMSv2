@@ -1,0 +1,333 @@
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Campus Security
+  </title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+
+  <style>
+   body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #0f172a;
+            color: #fff;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #1e293b;
+        }
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+        .navbar .logo i {
+            margin-right: 10px;
+        }
+        .navbar .nav-links {
+            display: flex;
+            gap: 20px;
+            margin-left: auto;
+            margin-right: 20px;
+        }
+        .navbar .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .navbar .user-info {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .navbar .user-info .user-icon {
+            width: 35px;
+            height: 35px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+        }
+        .navbar .user-info .dropdown {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: #1e293b;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .navbar .user-info .dropdown a {
+            display: block;
+            padding: 10px 20px;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .navbar .user-info .dropdown a:hover {
+            background-color: #3b82f6;
+        }
+        .content {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+         
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .fine-details, .make-payment {
+            background-color: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .fine-details h2, .make-payment h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .fine-details p, .make-payment p {
+            font-size: 16px;
+            margin: 5px 0;
+        }
+        .overdue {
+            color: #ff4d4d;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            background-color: #0d1117;
+            color: #fffdfd;
+        }
+        .form-group input::placeholder {
+            color: #ffffff;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #4a90e2;
+        }
+        .form-group .optional {
+            font-size: 12px;
+            color: #ccc;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .overdue-badge {
+            background-color: #ff4d4d;
+            color: #ffffff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .fine-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .fine-details .details {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .fine-details .details .left, .fine-details .details .right {
+            flex: 1;
+            min-width: 200px;
+        }
+        .fine-details .overdue-badge {
+            margin-left: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #ffffff;
+            background-color: #5865f2;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            margin: 0 auto;
+            display: block;
+        }
+        .btn:hover {
+            background-color: #357ab8;
+        }
+      
+
+
+  </style>
+  <script>
+   document.addEventListener('DOMContentLoaded', function () {
+  // Get User ID from localStorage
+  const userId = localStorage.getItem('userId');
+
+  // Log the userId to check its value
+  console.log('userId:', userId);  // Log the value of userId to the console
+
+  // Check if userId exists in localStorage
+  if (!userId) {
+    alert('User ID is missing. Please log in again.');
+    window.location.href = 'landing.html'; // Redirect to login page
+    return;  // Stop the script here if no userId is found
+  }
+
+  // Fetch User Info
+  fetchUserData(userId);
+
+  // Function to fetch user data
+  function fetchUserData(userId) {
+    console.log(`Fetching data for userId: ${userId}`); // Log the userId being sent in the fetch request
+
+    fetch(`http://localhost:4000/api/users/${userId}`)  // Use full URL for testing
+      .then(response => response.json())
+      .then(data => {
+        if (data.user) {
+          const { first_name, last_name } = data.user;
+          const userIcon = document.querySelector('.user-icon');
+          userIcon.textContent = first_name.charAt(0); // Set first letter of first name as the icon
+
+          const userName = document.querySelector('.user-info .user-name');
+          userName.textContent = `${first_name} ${last_name}`;
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching user data:', error);
+      });
+  }
+
+  // Logout function to clear localStorage and redirect to login page
+  const logoutLink = document.querySelector('.logout-link');
+  if (logoutLink) {
+    logoutLink.addEventListener('click', function () {
+      localStorage.removeItem('userId');
+      window.location.href = 'landing.html'; // Redirect to login page
+    });
+  }
+
+  // Dropdown toggle functionality
+  const userInfo = document.querySelector('.user-info');
+  const dropdown = document.querySelector('.user-info .dropdown');
+  
+  if (userInfo && dropdown) {
+    userInfo.addEventListener('click', function (event) {
+      event.stopPropagation();  // Prevents the click event from bubbling up
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+  }
+
+  // Close dropdown if clicked outside
+  document.addEventListener('click', function (event) {
+    const dropdown = document.querySelector('.user-info .dropdown');
+    const userInfo = document.querySelector('.user-info');
+    if (dropdown && !userInfo.contains(event.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+});
+  </script>
+ </head>
+ <body>
+  <div class="navbar">
+   <div class="logo">
+    <i class="fas fa-shield-alt">
+    </i>
+    Campus Security
+   </div>
+   <div class="nav-links">
+    <a href="userHomepage.html">
+     Home
+    </a>
+    <a href="vehicle.html">
+     Vehicle
+    </a>
+    <a href="compound.html">
+     Compound
+    </a>
+</div>
+<div class="user-info">
+  <div class="user-icon" aria-label="User profile icon">U</div>
+  <div>
+    <div class="user-name">Loading...</div>
+    <div style="font-size: 0.8em; color: #9ca3af;">User</div>
+  </div>
+  <div class="dropdown">
+    <a href="profile.html">Profile</a>
+    <a href="javascript:void(0);" class="logout-link">Logout</a>
+  </div>
+   </div>
+  </div>
+  <div class="content">
+
+    <div class="container">
+        <h1>Compound Fine Payment</h1>
+        <p>View your compound fine details and make payment</p>
+        <div class="fine-details">
+            <div class="details">
+                <div class="left">
+                    <p><strong>Vehicle Registration</strong><br>AGA 5445</p>
+                    <p><strong>Due Date</strong><br>15/3/2024</p>
+                    <p><strong>Total Amount</strong><br>RM 30.00</p>
+                </div>
+                <div class="right">
+                    <p><strong>Issue Date</strong><br>1/3/2024</p>
+                    <p><strong>Violation</strong><br>Parking in restricted area</p>
+                    <p><strong>Remaining Amount</strong><br>RM 30.00</p>
+                </div>
+                <p class="overdue">This fine is overdue. Please settle the payment as soon as possible to avoid additional penalties.</p>
+            </div>
+            <span class="overdue-badge">Overdue</span>
+        </div>
+        <div class="make-payment">
+            <h2>Make Payment</h2>
+            <div class="form-group">
+                <label for="payment-amount">Payment Amount (RM)</label>
+                <input type="text" id="payment-amount" placeholder="Enter payment amount">
+                <div class="form-group">
+                    <label for="payment-method">Payment Method</label>
+                    <select id="payment-method">
+                        <option value="" disabled selected>Select type...</option>
+                        <option value="credit-card">Credit Card</option>
+                        <option value="debit-card">Debit Card</option>
+                        <option value="online-banking">Online Banking</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reference-number">Reference Number (Optional)</label>
+                    <input type="text" id="reference-number" placeholder="Enter reference number">
+                </div>
+                <a href="#" class="btn">Proceed with Payment</a>
+            </div>
+        </div>

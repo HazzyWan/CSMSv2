@@ -1,0 +1,288 @@
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Campus Security</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+
+  <style>
+   body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #0f172a;
+      color: #fff;
+   }
+   .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: #1e293b;
+   }
+   .navbar .logo {
+      display: flex;
+      align-items: center;
+      font-size: 1.2em;
+      font-weight: 500;
+   }
+   .navbar .logo i {
+      margin-right: 10px;
+   }
+   .navbar .nav-links {
+      display: flex;
+      gap: 20px;
+      margin-left: auto;
+      margin-right: 20px;
+   }
+   .navbar .nav-links a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+   }
+   .navbar .user-info {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+   }
+   .navbar .user-info .user-icon {
+      width: 35px;
+      height: 35px;
+      background-color: #3b82f6;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 700;
+   }
+   .navbar .user-info .dropdown {
+      display: none;
+      position: absolute;
+      top: 50px;
+      right: 0;
+      background-color: #1e293b;
+      border-radius: 5px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+   }
+   .navbar .user-info .dropdown a {
+      display: block;
+      padding: 10px 20px;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+   }
+   .navbar .user-info .dropdown a:hover {
+      background-color: #3b82f6;
+   }
+   .content {
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+   }
+   .content h1 {
+      text-align: center;
+      color: #ffffff;
+   }
+   .add-vehicle-btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      display: block;
+      margin: 20px auto;
+      text-decoration: none;
+   }
+   .add-vehicle-btn:hover {
+      background-color: #45a049;
+   }
+   .application {
+      background-color: #1e293b;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      display: flex;
+      padding: 15px;
+      align-items: center;
+   }
+   .application img {
+      border-radius: 8px;
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      margin-right: 20px;
+   }
+   .application-details h2 {
+      margin: 0;
+      color: #333;
+   }
+   .application-actions button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      cursor: pointer;
+      margin-left: 10px;
+      font-size: 16px;
+   }
+   .application-actions button.reject {
+      background-color: #dc3545;
+   }
+   .status {
+      font-size: 16px;
+      font-weight: bold;
+      color: #28a745;
+   }
+   .status.rejected {
+      color: #dc3545;
+   }
+  </style>
+
+  <script>
+   document.addEventListener('DOMContentLoaded', function () {
+  // Get User ID from localStorage
+  const userId = localStorage.getItem('userId');
+
+  // Log the userId to check its value
+  console.log('userId:', userId);  // Log the value of userId to the console
+
+  // Check if userId exists in localStorage
+  if (!userId) {
+    alert('User ID is missing. Please log in again.');
+    window.location.href = 'landing.html'; // Redirect to login page
+    return;  // Stop the script here if no userId is found
+  }
+
+  // Fetch User Info
+  fetchUserData(userId);
+
+  // Function to fetch user data
+  function fetchUserData(userId) {
+    console.log(`Fetching data for userId: ${userId}`); // Log the userId being sent in the fetch request
+
+    fetch(`http://localhost:4000/api/users/${userId}`)  // Use full URL for testing
+      .then(response => response.json())
+      .then(data => {
+        if (data.user) {
+          const { first_name, last_name } = data.user;
+          const userIcon = document.querySelector('.user-icon');
+          userIcon.textContent = first_name.charAt(0); // Set first letter of first name as the icon
+
+          const userName = document.querySelector('.user-info .user-name');
+          userName.textContent = `${first_name} ${last_name}`;
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching user data:', error);
+      });
+  }
+
+  // Logout function to clear localStorage and redirect to login page
+  const logoutLink = document.querySelector('.logout-link');
+  if (logoutLink) {
+    logoutLink.addEventListener('click', function () {
+      localStorage.removeItem('userId');
+      window.location.href = 'landing.html'; // Redirect to login page
+    });
+  }
+
+  // Dropdown toggle functionality
+  const userInfo = document.querySelector('.user-info');
+  const dropdown = document.querySelector('.user-info .dropdown');
+  
+  if (userInfo && dropdown) {
+    userInfo.addEventListener('click', function (event) {
+      event.stopPropagation();  // Prevents the click event from bubbling up
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+  }
+
+  // Close dropdown if clicked outside
+  document.addEventListener('click', function (event) {
+    const dropdown = document.querySelector('.user-info .dropdown');
+    const userInfo = document.querySelector('.user-info');
+    if (dropdown && !userInfo.contains(event.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+});
+
+function updateStatus(button, status) {
+  const vehicleId = button.closest('.vehicle-application').dataset.vehicleId; // Assuming each application has a data attribute for the vehicle ID
+  const token = localStorage.getItem('token');
+
+  fetch(`http://localhost:4000/api/vehicle/status/${vehicleId}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ status })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.message) {
+      alert(data.message);
+      // Update the status on the UI (you can add more logic to dynamically update the status here)
+    }
+  })
+  .catch(error => {
+    console.error('Error updating status:', error);
+    alert('Failed to update status.');
+  });
+}
+
+  </script>
+ </head>
+ <body>
+
+  <div class="navbar">
+   <div class="logo">
+    <i class="fas fa-shield-alt"></i>
+    Campus Security
+   </div>
+   <div class="nav-links">
+    <a href="adminHomepage.html">Home</a>
+    <a href="vehicleA.html">Vehicle</a>
+</div>
+<div class="user-info">
+  <div class="user-icon" aria-label="User profile icon">U</div>
+  <div>
+    <div class="user-name">Loading...</div>
+    <div style="font-size: 0.8em; color: #9ca3af;">User</div>
+  </div>
+  <div class="dropdown">
+    <a href="profile.html">Profile</a>
+    <a href="javascript:void(0);" class="logout-link">Logout</a>
+  </div>
+   </div>
+  </div>
+
+  <div class="content">
+    <h1>Vehicle Application Approval</h1>
+    <a href="addVehicle.html" class="add-vehicle-btn">Add Vehicle</a>
+
+    <!-- Vehicle Applications -->
+    <div class="application">
+     <img alt="Image of a red Proton Saga car" src="https://storage.googleapis.com/a1aa/image/e2guXruiOTxYOSgIZkmKq3vTt8tBikVDfeecjdIK8lotEjJQB.jpg"/>
+     <div class="application-details">
+      <h2>AIMAN</h2>
+      <p>Vehicle: Red Proton Saga</p>
+      <p>Plate Number: ALA 5115</p>
+     </div>
+     <div class="application-actions">
+      <button class="approve" onclick="updateStatus(this, 'approved')"><i class="fas fa-check"></i>Approve</button>
+      <button class="reject" onclick="updateStatus(this, 'rejected')"><i class="fas fa-times"></i>Reject</button>
+     </div>
+    </div>
+
+    <!-- Add more vehicle applications as needed -->
+  </div>
+
+ </body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Campus Security - Officer Dashboard</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="styles.css" rel="stylesheet" />
+    <style>
+      /* Unique Styles for Search Bar and Load More Button */
+      .search-bar {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
+      }
+
+      .search-bar input {
+        padding: 10px;
+        width: 80%;
+        max-width: 400px;
+        border: 1px solid #9ca3af;
+        border-radius: 5px;
+        font-size: 1em;
+      }
+
+      .load-more {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
+      }
+
+      .load-more button {
+        padding: 10px 20px;
+        font-size: 1em;
+        background-color: #5865f2;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .load-more button:hover {
+        background-color: #4752c4;
+      }
+    </style>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+
+        const userInfo = document.querySelector('.user-info');
+        const dropdown = document.querySelector('.dropdown');
+
+        userInfo.addEventListener('click', function () {
+          dropdown.classList.toggle('active');
+        });
+
+        document.addEventListener('click', function (event) {
+          if (!userInfo.contains(event.target)) {
+            dropdown.classList.remove('active');
+          }
+        });
+
+        const postButton = document.querySelector('.post-button');
+        postButton.addEventListener('click', function () {
+          window.location.href = 'newpostO.html';
+        });
+
+        let updates = [];
+        let batchSize = 5;
+        let currentBatch = 0;
+
+        const content = document.querySelector('.content');
+
+        document
+          .querySelector('.search-bar input')
+          .addEventListener('input', function (event) {
+            const query = event.target.value.toLowerCase();
+            const filteredUpdates = updates.filter((update) =>
+              update.title.toLowerCase().includes(query)
+            );
+            renderUpdates(filteredUpdates);
+          });
+
+        document.querySelector('.load-more button').addEventListener('click', function () {
+          loadMoreUpdates();
+        });
+
+        fetchUpdates();
+
+        function fetchUpdates() {
+          fetch('/api/updates')
+            .then((response) => response.json())
+            .then((data) => {
+              updates = data;
+              loadMoreUpdates();
+            })
+            .catch((error) => {
+              console.error('Error fetching updates:', error);
+              content.innerHTML = '<p>Error loading updates. Please try again later.</p>';
+            });
+        }
+
+        function loadMoreUpdates() {
+          const start = currentBatch * batchSize;
+          const end = start + batchSize;
+          const batch = updates.slice(start, end);
+
+          if (batch.length > 0) {
+            renderUpdates(batch, true);
+            currentBatch++;
+          } else {
+            document.querySelector('.load-more').style.display = 'none';
+          }
+        }
+
+        function renderUpdates(updatesToRender, append = false) {
+          if (!append) {
+            content.innerHTML = '<h2>Recent Updates</h2>';
+          }
+
+          updatesToRender.forEach((update) => {
+            const card = createUpdateCard(update);
+            content.appendChild(card);
+          });
+        }
+
+        function createUpdateCard(update) {
+          const card = document.createElement('div');
+          card.classList.add('update-card');
+
+          const img = document.createElement('img');
+          img.src = update.imageURL;
+          img.alt = update.title;
+          img.height = 200;
+          img.width = 400;
+
+          const cardContent = document.createElement('div');
+          cardContent.classList.add('card-content');
+
+          const title = document.createElement('div');
+          title.classList.add('title');
+          const icon = document.createElement('i');
+          icon.classList.add('fas', 'fa-shield-alt');
+          title.appendChild(icon);
+          title.appendChild(document.createTextNode(update.title));
+
+          const description = document.createElement('div');
+          description.classList.add('description');
+          description.textContent = update.description;
+
+          const meta = document.createElement('div');
+          meta.classList.add('meta');
+
+          const postedBy = document.createElement('div');
+          postedBy.textContent = `Posted by ${update.postedBy}`;
+          const date = document.createElement('div');
+          date.textContent = update.date;
+
+          meta.appendChild(postedBy);
+          meta.appendChild(date);
+
+          cardContent.appendChild(title);
+          cardContent.appendChild(description);
+          cardContent.appendChild(meta);
+
+          card.appendChild(img);
+          card.appendChild(cardContent);
+
+          return card;
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="logo">
+        <i class="fas fa-shield-alt"></i>
+        Campus Security
+      </div>
+      <div class="nav-links">
+        <a href="indexO.html">Home</a>
+        <a href="compoundO.html">Compound</a>
+      </div>
+      <div class="user-info" aria-label="User Info">
+        <div class="user-icon" aria-label="User Icon">F</div>
+        <div>
+          <div>Firdaus</div>
+          <div style="font-size: 0.8em; color: #9ca3af;">Officer</div>
+        </div>
+        <div class="dropdown">
+          <a href="profileO.html">Profile</a>
+          <a href="landing.html">Logout</a>
+        </div>
+      </div>
+    </div>
+    <div class="search-bar">
+      <input type="text" placeholder="Search updates by title..." aria-label="Search Updates" />
+    </div>
+    <div class="content">
+      <h2>Recent Updates</h2>
+    </div>
+    <div class="load-more">
+      <button>Load More</button>
+    </div>
+    <button class="post-button" aria-label="Create New Post">
+      <i class="fas fa-plus"></i>
+    </button>
+  </body>
+</html>

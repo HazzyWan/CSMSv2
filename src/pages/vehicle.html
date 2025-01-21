@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campus Security - User Dashboard</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      /* General Styles */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  margin: 0;
+  padding: 0;
+}
+
+.content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.main-title h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+  color: #3d3d3d;
+}
+
+.main-title p {
+  font-size: 18px;
+  color: #777;
+}
+
+.form-section {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.form-section h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+label {
+  font-size: 16px;
+  margin-bottom: 5px;
+  color: #555;
+  display: block;
+}
+
+input[type="text"], input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+input[type="file"] {
+  padding: 5px;
+}
+
+.file-info {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 15px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background-color: #45a049;
+}
+
+button {
+  border: none;
+  background: none;
+}
+
+button:focus {
+  outline: none;
+}
+
+      .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: #1e293b;
+      }
+      .navbar .logo {
+        display: flex;
+        align-items: center;
+        font-size: 1.2em;
+        font-weight: 500;
+      }
+      .navbar .logo i {
+        margin-right: 10px;
+      }
+      .navbar .nav-links {
+        display: flex;
+        gap: 20px;
+        margin-left: auto;
+        margin-right: 20px;
+      }
+      .navbar .nav-links a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .navbar .user-info {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+      }
+      .navbar .user-info .user-icon {
+        width: 35px;
+        height: 35px;
+        background-color: #3b82f6;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 700;
+      }
+      .navbar .user-info .dropdown {
+        display: none;
+        position: absolute;
+        top: 50px;
+        right: 0;
+        background-color: #1e293b;
+        border-radius: 5px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .navbar .user-info .dropdown a {
+        display: block;
+        padding: 10px 20px;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .navbar .user-info .dropdown a:hover {
+        background-color: #3b82f6;
+      }
+      .content {
+        padding: 20px;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .content h2 {
+        font-size: 1.5em;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .update-card {
+        background-color: #1e293b;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 20px;
+      }
+      .update-card img {
+        width: 100%;
+        height: auto;
+      }
+      .update-card .card-content {
+        padding: 15px;
+      }
+      .update-card .card-content .title {
+        display: flex;
+        align-items: center;
+        font-size: 1.1em;
+        font-weight: 500;
+        margin-bottom: 10px;
+      }
+      .update-card .card-content .title i {
+        margin-right: 10px;
+        color: #10b981;
+      }
+      .update-card .card-content .description {
+        font-size: 0.9em;
+        margin-bottom: 10px;
+      }
+      .update-card .card-content .meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8em;
+        color: #9ca3af;
+      }
+      .post-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #4f46e5;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2em;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      #loading-spinner {
+        text-align: center;
+        font-size: 1em;
+        color: #9ca3af;
+      }
+    </style>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // Get User ID from localStorage
+        const userId = localStorage.getItem('userId');
+        const submitButton = document.querySelector(".submit-btn");
+
+  
+
+        // Log the userId to check its value
+        console.log('userId:', userId);  // Log the value of userId to the console
+
+        // Check if userId exists in localStorage
+        if (!userId) {
+          alert('User ID is missing. Please log in again.');
+          window.location.href = 'landing.html'; // Redirect to login page
+          return;  // Stop the script here if no userId is found
+        }
+
+        // Fetch User Info
+        fetchUserData(userId);
+
+        // Function to fetch user data
+        function fetchUserData(userId) {
+          console.log(`Fetching data for userId: ${userId}`); // Log the userId being sent in the fetch request
+
+          fetch(`http://localhost:4000/api/users/${userId}`)  // Use full URL for testing
+          .then(response => response.json())
+          .then(data => {
+            if (data.user) {
+              const { first_name, last_name } = data.user;
+              const userIcon = document.querySelector('.user-icon');
+              userIcon.textContent = first_name.charAt(0); // Set first letter of first name as the icon
+
+              const userName = document.querySelector('.user-info .user-name');
+              userName.textContent = `${first_name} ${last_name}`;
+            }
+          })
+          .catch(error => {
+          console.error('Error fetching user data:', error);
+          });
+        }
+
+        // Logout function to clear localStorage and redirect to login page
+        const logoutLink = document.querySelector('.logout-link');
+        if (logoutLink) {
+          logoutLink.addEventListener('click', function () {
+            localStorage.removeItem('userId');
+            window.location.href = 'landing.html'; // Redirect to login page
+          });
+        }
+
+        // Dropdown toggle functionality
+        const userInfo = document.querySelector('.user-info');
+        const dropdown = document.querySelector('.user-info .dropdown');
+
+        if (userInfo && dropdown) {
+          userInfo.addEventListener('click', function (event) {
+            event.stopPropagation();  // Prevents the click event from bubbling up
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+          });
+        }
+
+        // Close dropdown if clicked outside
+        document.addEventListener('click', function (event) {
+          const dropdown = document.querySelector('.user-info .dropdown');
+          const userInfo = document.querySelector('.user-info');
+          if (dropdown && !userInfo.contains(event.target)) {
+          dropdown.style.display = 'none';
+          }
+        });
+
+        function createUpdateCard(update) {
+          const card = document.createElement('div');
+          card.className = 'update-card';
+
+          card.innerHTML = ` 
+            <div class="card-content">
+                <div class="title">
+                    <i class="fas fa-info-circle"></i>${update.title}
+                </div>
+                <div class="description">${update.description}</div>
+                <div class="meta">
+                    <span>${update.date}</span>
+                    <span>${update.author}</span>
+                </div>
+            </div>
+          `;
+          return card;
+        }
+
+        submitButton.addEventListener("click", async function () {
+      const studentId = document.getElementById("student-id").value.trim();
+      const vehicleRegNumber = document.getElementById(
+        "vehicle-reg-number-application"
+      ).value.trim();
+      const vehiclePhoto = document.getElementById("vehicle-photo").files[0];
+
+      const fileType = vehiclePhoto.type.split('/')[0];
+        if (fileType !== 'image') {
+        alert('Please upload a valid image file.');
+        return;
+      }
+
+      if (!studentId || !vehicleRegNumber || !vehiclePhoto) {
+        alert("Please fill in all fields and upload a file.");
+        return;
+      }
+
+      // Prepare the form data
+      const formData = new FormData();
+      formData.append("matric_no", studentId);
+      formData.append("plate_no", vehicleRegNumber);
+      formData.append("vehicle_photo", vehiclePhoto);
+
+      try {
+        const response = await fetch(
+          "http://localhost:4000/api/vehicle/apply",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        const result = await response.json();
+        if (response.ok) {
+          alert("Application submitted successfully.");
+          // Optionally redirect or clear form
+        } else {
+          alert(`Error: ${result.message}`);
+        }
+      } catch (error) {
+        console.error("Application error:", error);
+        alert("An error occurred while submitting your application.");
+      }
+    });
+  });
+
+    </script>
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="logo">
+        <i class="fas fa-shield-alt"></i>
+        Campus Security
+      </div>
+      <div class="nav-links">
+        <a href="userHomepage.html">Home</a>
+        <a href="vehicle.html">Vehicle</a>
+        <a href="compound.html">Compound</a>
+    </div>
+    <div class="user-info">
+      <div class="user-icon" aria-label="User profile icon">U</div>
+      <div>
+        <div class="user-name">Loading...</div>
+        <div style="font-size: 0.8em; color: #9ca3af;">User</div>
+      </div>
+      <div class="dropdown">
+        <a href="profile.html">Profile</a>
+        <a href="javascript:void(0);" class="logout-link">Logout</a>
+      </div>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="main-title">
+          <h1>
+           Vehicle Registration &amp; Parking
+          </h1>
+          <p>
+           Apply for a student parking sticker
+          </p>
+         </div>
+         <div class="form-section">
+          <div style="display: flex;">
+            </i>
+           </button>
+          </div>
+         </div>
+         <div class="form-section">
+          <h2>
+           Student Parking Sticker Application
+          </h2>
+          <label for="student-id">
+           Student ID
+          </label>
+          <input id="student-id" placeholder="Enter your student ID" type="text"/>
+          <label for="vehicle-reg-number-application">
+           Vehicle Registration Number
+          </label>
+          <input id="vehicle-reg-number-application" placeholder="Enter registration number" type="text"/>
+          <label for="vehicle-photo">
+           Vehicle Photo And Related Files
+          </label>
+          <input id="vehicle-photo" type="file"/>
+          <div class="file-info">
+           Max file size: 5MB. Accepted formats: JPG, PNG, PDF
+          </div>
+          
+          <button class="submit-btn">
+           Submit Application
+          </button>
+         </div>
+        </div>
+  </body>
+</html>
