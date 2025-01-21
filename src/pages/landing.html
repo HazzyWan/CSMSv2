@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Campus Security System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Roboto', sans-serif;
+            background-color: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            text-align: center;
+            color: #ffffff;
+        }
+        .container .logo {
+            font-size: 50px;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        .container h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+        .container p {
+            font-size: 1rem;
+            margin: 10px 0 20px;
+        }
+        .form-container {
+            background-color: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 300px;
+            margin: 0 auto;
+        }
+        .form-container .tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .form-container .tabs div {
+            cursor: pointer;
+            padding: 10px 20px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .form-container .tabs .active {
+            color: #5865f2;
+            font-weight: bold;
+            border-bottom: 2px solid #5865f2;
+        }
+        .form-container form {
+            display: flex;
+            flex-direction: column;
+            margin-top: 20px;
+        }
+        .form-container form input,
+        .form-container form select {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            background-color: #2a2f3e;
+            color: #c9d1d9;
+        }
+        .form-container form button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #5865f2;
+            color: #fff;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .form-container form button:hover {
+            background-color: #4752c4;
+        }
+        .error {
+            color: #f44336;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <h1>Campus Security System</h1>
+        <p>Sign in or create an account to continue</p>
+        <div class="form-container">
+            <div class="tabs">
+                <div class="login active" onclick="toggleForm('login')">Login</div>
+                <div class="signup" onclick="toggleForm('signup')">Sign Up</div>
+            </div>
+            <form id="auth-form">
+                <!-- Form content will be dynamically generated based on active tab -->
+            </form>
+            <div id="error-message" class="error"></div>
+            <div id="loading-message"></div>
+        </div>
+    </div>
+
+    <script>
+        // Default form type
+        let currentForm = 'login'; 
+
+        // Function to toggle between login and signup form
+        function toggleForm(formType) {
+            currentForm = formType;
+            updateTabStyles();
+            updateFormFields();
+        }
+
+        // Function to update tab styles
+        function updateTabStyles() {
+            const tabs = document.querySelectorAll('.tabs div');
+            tabs.forEach(tab => tab.classList.remove('active')); // Remove active class from all tabs
+            const activeTab = document.querySelector(`.tabs .${currentForm}`);
+            activeTab.classList.add('active'); // Add active class to current tab
+        }
+
+        // Function to update form fields based on login or signup
+        function updateFormFields() {
+            const formContainer = document.getElementById('auth-form');
+            formContainer.innerHTML = ''; // Clear existing fields
+
+            if (currentForm === 'login') {
+                formContainer.innerHTML = `
+                    <input placeholder="Email" type="email" required/>
+                    <input placeholder="Password" type="password" required/>
+                    <button type="submit">Login</button>
+                `;
+            } else {
+                formContainer.innerHTML = `
+                    <input placeholder="First Name" type="text" required/>
+                    <input placeholder="Last Name" type="text" required/>
+                    <select id="role">
+                        <option>Student/Staff</option>
+                        <option>Officer</option>
+                        <option>Admin</option>
+                    </select>
+                    <input placeholder="Email" type="email" required/>
+                    <input placeholder="Password" type="password" required/>
+                    <button type="submit">Sign Up</button>
+                `;
+            }
+
+            // Re-attach the event listener for form submission
+            const form = formContainer.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', currentForm === 'login' ? handleLogin : handleSignUp);
+            }
+        }
+
+        // Handle login form submission
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.querySelector('input[placeholder="Email"]').value;
+            const password = document.querySelector('input[placeholder="Password"]').value;
+
+            const errorMessage = document.getElementById('error-message');
+            const loadingMessage = document.getElementById('loading-message');
+            errorMessage.textContent = '';
+            loadingMessage.textContent = 'Processing...';
+
+            if (!email || !password) {
+                errorMessage.textContent = 'Please enter both email and password.';
+                loadingMessage.textContent = '';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:4000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save the JWT token in localStorage
+                    localStorage.setItem('supabase_token', data.token);
+                    alert('Login successful!');
+                    window.location.href = 'dashboard.html'; // Redirect to the user dashboard
+                } else {
+                    errorMessage.textContent = `Login failed: ${data.message}`;
+                }
+            } catch (error) {
+                console.error('Error during login:', error);
+                errorMessage.textContent = 'An error occurred. Please try again later.';
+            } finally {
+                loadingMessage.textContent = ''; // Hide loading message
+            }
+        }
+
+    // Handle signup form submission
+    async function handleSignUp(event) {
+    event.preventDefault(); // Prevent page refresh
+
+    const firstName = document.querySelector('input[placeholder="First Name"]').value;
+    const lastName = document.querySelector('input[placeholder="Last Name"]').value;
+    const email = document.querySelector('input[placeholder="Email"]').value;
+    const password = document.querySelector('input[placeholder="Password"]').value;
+    const role = document.getElementById('role').value;
+
+    const errorMessage = document.getElementById('error-message');
+    const loadingMessage = document.getElementById('loading-message');
+    errorMessage.textContent = '';
+    loadingMessage.textContent = 'Processing...';
+
+    if (!firstName || !lastName || !email || !password || !role) {
+        alert("All fields are required!");
+        loadingMessage.textContent = ''; // Hide loading message
+        return; // Stop the form submission if any field is missing
+    }
+
+    // Log the data before sending to the backend for debugging
+    console.log('Sign Up Data:', {
+        firstName, lastName, email, password, role
+    });
+
+    try {
+        const response = await fetch('http://localhost:4000/register', {  // Change endpoint to '/register'
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, firstName, lastName, role }),
+        });
+
+        // Check if the response is ok
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Server Response:', data); // Log server response
+
+            if (data.success) {
+                alert('Signup successful! You can now log in.');
+                toggleForm('login'); // Switch to login form
+            } else {
+                alert(`Signup failed: ${data.error || data.message}`);
+            }
+        } else {
+            alert('Error: Unable to connect to the server. Please try again later.');
+        }
+    } catch (error) {
+        console.error('Error during signup:', error);
+        alert('An error occurred. Please try again later.');
+    } finally {
+        loadingMessage.textContent = ''; // Hide loading message
+    }
+}
+
+        // Initialize the page with login form
+        toggleForm('login'); // Default form is login
+    </script>
+</body>
+</html>
