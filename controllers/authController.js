@@ -82,7 +82,6 @@ const registerUser = async (req, res) => {
     }
 };
 
-//Login function
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
@@ -127,10 +126,15 @@ const loginUser = async (req, res) => {
         }
 
         // Step 4: Create JWT token
-        const JWT_SECRET = process.env.JWT_SECRET || 'default_secret_key';
+        const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
+        if (!JWT_SECRET_KEY) {
+            console.error('JWT_SECRET_KEY not found in environment variables');
+            return res.status(500).json({ error: 'Server error: JWT secret key is missing' });
+        }
+
         const token = jwt.sign(
             { userId: user.userid, role: user.role },
-            JWT_SECRET,
+            JWT_SECRET_KEY,  // Use the correct secret key from environment
             { expiresIn: '1h' } // Token expiration time (1 hour)
         );
 

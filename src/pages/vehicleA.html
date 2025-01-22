@@ -187,6 +187,8 @@
   if (logoutLink) {
     logoutLink.addEventListener('click', function () {
       localStorage.removeItem('userId');
+      localStorage.removeItem('token');  // Remove token from localStorage
+      localStorage.removeItem('role');
       window.location.href = 'landing.html'; // Redirect to login page
     });
   }

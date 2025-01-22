@@ -235,25 +235,24 @@ button:focus {
         const userId = localStorage.getItem('userId');
         const submitButton = document.querySelector(".submit-btn");
 
-  
-
+    
         // Log the userId to check its value
         console.log('userId:', userId);  // Log the value of userId to the console
-
+    
         // Check if userId exists in localStorage
         if (!userId) {
           alert('User ID is missing. Please log in again.');
           window.location.href = 'landing.html'; // Redirect to login page
           return;  // Stop the script here if no userId is found
         }
-
+    
         // Fetch User Info
         fetchUserData(userId);
-
+    
         // Function to fetch user data
         function fetchUserData(userId) {
           console.log(`Fetching data for userId: ${userId}`); // Log the userId being sent in the fetch request
-
+    
           fetch(`http://localhost:4000/api/users/${userId}`)  // Use full URL for testing
           .then(response => response.json())
           .then(data => {
@@ -261,49 +260,51 @@ button:focus {
               const { first_name, last_name } = data.user;
               const userIcon = document.querySelector('.user-icon');
               userIcon.textContent = first_name.charAt(0); // Set first letter of first name as the icon
-
+    
               const userName = document.querySelector('.user-info .user-name');
               userName.textContent = `${first_name} ${last_name}`;
             }
           })
           .catch(error => {
-          console.error('Error fetching user data:', error);
+            console.error('Error fetching user data:', error);
           });
         }
-
+    
         // Logout function to clear localStorage and redirect to login page
         const logoutLink = document.querySelector('.logout-link');
         if (logoutLink) {
           logoutLink.addEventListener('click', function () {
             localStorage.removeItem('userId');
+            localStorage.removeItem('token');  // Remove token from localStorage
+            localStorage.removeItem('role');
             window.location.href = 'landing.html'; // Redirect to login page
           });
         }
-
+    
         // Dropdown toggle functionality
         const userInfo = document.querySelector('.user-info');
         const dropdown = document.querySelector('.user-info .dropdown');
-
+    
         if (userInfo && dropdown) {
           userInfo.addEventListener('click', function (event) {
             event.stopPropagation();  // Prevents the click event from bubbling up
             dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
           });
         }
-
+    
         // Close dropdown if clicked outside
         document.addEventListener('click', function (event) {
           const dropdown = document.querySelector('.user-info .dropdown');
           const userInfo = document.querySelector('.user-info');
           if (dropdown && !userInfo.contains(event.target)) {
-          dropdown.style.display = 'none';
+            dropdown.style.display = 'none';
           }
         });
-
+    
         function createUpdateCard(update) {
           const card = document.createElement('div');
           card.className = 'update-card';
-
+    
           card.innerHTML = ` 
             <div class="card-content">
                 <div class="title">
@@ -318,119 +319,121 @@ button:focus {
           `;
           return card;
         }
+    
+        const submitApplication = async () => {
+  // Get values from form fields
+  const studentId = document.getElementById('matric_no').value;
+  const vehicleRegNumber = document.getElementById('plate_no').value;
+  const vehiclePhoto = document.getElementById('vehicle_photo').files[0];
 
-        submitButton.addEventListener("click", async function () {
-      const studentId = document.getElementById("student-id").value.trim();
-      const vehicleRegNumber = document.getElementById(
-        "vehicle-reg-number-application"
-      ).value.trim();
-      const vehiclePhoto = document.getElementById("vehicle-photo").files[0];
-
-      const fileType = vehiclePhoto.type.split('/')[0];
-        if (fileType !== 'image') {
-        alert('Please upload a valid image file.');
-        return;
-      }
-
-      if (!studentId || !vehicleRegNumber || !vehiclePhoto) {
-        alert("Please fill in all fields and upload a file.");
-        return;
-      }
-
-      // Prepare the form data
-      const formData = new FormData();
-      formData.append("matric_no", studentId);
-      formData.append("plate_no", vehicleRegNumber);
-      formData.append("vehicle_photo", vehiclePhoto);
-
-      try {
-        const response = await fetch(
-          "http://localhost:4000/api/vehicle/apply",
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-
-        const result = await response.json();
-        if (response.ok) {
-          alert("Application submitted successfully.");
-          // Optionally redirect or clear form
-        } else {
-          alert(`Error: ${result.message}`);
-        }
-      } catch (error) {
-        console.error("Application error:", error);
-        alert("An error occurred while submitting your application.");
-      }
-    });
+  // Log the form data to check
+  console.log("Form Data:", {
+    studentId,
+    vehicleRegNumber,
+    vehiclePhoto
   });
 
-    </script>
-  </head>
-  <body>
-    <div class="navbar">
-      <div class="logo">
-        <i class="fas fa-shield-alt"></i>
-        Campus Security
-      </div>
-      <div class="nav-links">
-        <a href="userHomepage.html">Home</a>
-        <a href="vehicle.html">Vehicle</a>
-        <a href="compound.html">Compound</a>
-    </div>
-    <div class="user-info">
-      <div class="user-icon" aria-label="User profile icon">U</div>
-      <div>
-        <div class="user-name">Loading...</div>
-        <div style="font-size: 0.8em; color: #9ca3af;">User</div>
-      </div>
-      <div class="dropdown">
-        <a href="profile.html">Profile</a>
-        <a href="javascript:void(0);" class="logout-link">Logout</a>
-      </div>
-      </div>
-    </div>
-    <div class="content">
+  // Check if all required fields are filled
+  if (!studentId || !vehicleRegNumber || !vehiclePhoto) {
+    alert("Please fill in all fields and upload a file.");
+    return;
+  }
 
-      <div class="main-title">
-          <h1>
-           Vehicle Registration &amp; Parking
-          </h1>
-          <p>
-           Apply for a student parking sticker
-          </p>
-         </div>
-         <div class="form-section">
-          <div style="display: flex;">
-            </i>
-           </button>
-          </div>
-         </div>
-         <div class="form-section">
-          <h2>
-           Student Parking Sticker Application
-          </h2>
-          <label for="student-id">
-           Student ID
-          </label>
-          <input id="student-id" placeholder="Enter your student ID" type="text"/>
-          <label for="vehicle-reg-number-application">
-           Vehicle Registration Number
-          </label>
-          <input id="vehicle-reg-number-application" placeholder="Enter registration number" type="text"/>
-          <label for="vehicle-photo">
-           Vehicle Photo And Related Files
-          </label>
-          <input id="vehicle-photo" type="file"/>
-          <div class="file-info">
-           Max file size: 5MB. Accepted formats: JPG, PNG, PDF
-          </div>
-          
-          <button class="submit-btn">
-           Submit Application
-          </button>
-         </div>
+  // Get JWT token from localStorage
+  const token = localStorage.getItem('token');
+  console.log("Retrieved Token:", token);
+  if (!token) {
+    alert("You must be logged in to submit an application.");
+    return;
+  }
+
+  // Prepare the form data
+  const formData = new FormData();
+  formData.append('matric_no', studentId);
+  formData.append('plate_no', vehicleRegNumber);
+  formData.append('vehicle_photo', vehiclePhoto);
+
+  try {
+    // Send the form data with JWT token in Authorization header
+    const response = await fetch("http://localhost:4000/api/vehicle/apply", {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${token}`  // Include JWT token in the header
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    // Log the response to check error message
+    console.log("Response Data:", data);
+
+    if (response.ok) {
+      alert('Vehicle application submitted successfully!');
+    } else {
+      console.error('Error:', data.error);
+      alert(`Failed to submit application: ${data.error || "Unknown error"}`);
+    }
+  } catch (error) {
+    console.error('Application error:', error);
+    alert('An unexpected error occurred.');
+  }
+};
+    
+        // Add event listener for form submission
+        document.getElementById('vehicleForm').addEventListener('submit', (event) => {
+          event.preventDefault();  // Prevent form from reloading the page
+          submitApplication();
+        });
+    
+      });
+    </script>
+    
+    </head>
+    <body>
+      <div class="navbar">
+        <div class="logo">
+          <i class="fas fa-shield-alt"></i> Campus Security
         </div>
-  </body>
-</html>
+        <div class="nav-links">
+          <a href="userHomepage.html">Home</a>
+          <a href="vehicle.html">Vehicle</a>
+          <a href="compound.html">Compound</a>
+        </div>
+        <div class="user-info">
+          <div class="user-icon" aria-label="User profile icon">U</div>
+          <div>
+            <div class="user-name">Loading...</div>
+            <div style="font-size: 0.8em; color: #9ca3af;">User</div>
+          </div>
+          <div class="dropdown">
+            <a href="profile.html">Profile</a>
+            <a href="javascript:void(0);" class="logout-link">Logout</a>
+          </div>
+        </div>
+      </div>
+    
+      <div class="content">
+        <div class="main-title">
+          <h1>Vehicle Registration &amp; Parking</h1>
+          <p>Apply for a student parking sticker</p>
+        </div>
+        <div class="form-section">
+          <h2>Student Parking Sticker Application</h2>
+          <form id="vehicleForm">
+            <label for="matric_no">Student ID</label>
+            <input id="matric_no" placeholder="Enter your student ID" type="text" required />
+            <label for="plate_no">Vehicle Registration Number</label>
+            <input id="plate_no" placeholder="Enter registration number" type="text" required />
+            <label for="vehicle_photo">Vehicle Photo And Related Files</label>
+            <input id="vehicle_photo" type="file" required />
+            <div class="file-info">
+              Max file size: 5MB. Accepted formats: JPG, PNG, PDF
+            </div>
+            <button class="submit-btn" type="submit">Submit Application</button>
+          </form>
+        </div>
+      </div>
+    </body>
+    </html>
+    

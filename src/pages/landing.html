@@ -180,6 +180,8 @@
 
                 if (response.ok) {
                     localStorage.setItem('token', result.token);
+                    console.log("Stored Token:", result.token);
+
                     const role = result.user.role || 'Student/Staff';
                     localStorage.setItem('role', role);
                     localStorage.setItem('userId', result.user.userid);

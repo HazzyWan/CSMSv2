@@ -138,8 +138,10 @@
   const logoutLink = document.querySelector('.logout-link');
   if (logoutLink) {
     logoutLink.addEventListener('click', function () {
-      localStorage.removeItem('userId');
-      window.location.href = 'landing.html'; // Redirect to login page
+        localStorage.removeItem('token');  // Remove token from localStorage
+        localStorage.removeItem('userId');
+        localStorage.removeItem('role');
+        window.location.href = 'landing.html'; // Redirect to login page
     });
   }
 

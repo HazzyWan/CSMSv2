@@ -11,63 +11,94 @@ const supabase = createClient(
 // Configure Multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Function to apply for a vehicle
-const applyVehicle = async (req, res) => {
-  upload.single('vehicle_photo')(req, res, async () => {
-    const { user_id, plate_no } = req.body;
-    const file = req.file;
-
-    // Validate inputs
-    if (!user_id || !plate_no || !file) {
-      return res.status(400).json({
-        error: 'User ID, plate number, and vehicle photo are required.',
-      });
-    }
-
-    // Optional: Regex for plate number validation
-    const plateRegex = /^[A-Z0-9-]{1,10}$/;
-    if (!plateRegex.test(plate_no)) {
-      return res.status(400).json({ error: 'Invalid plate number format.' });
-    }
-
+/**
+ * Create a vehicle application
+ * @param {Object} req - HTTP request object
+ * @param {Object} res - HTTP response object
+ */
+const createVehicleApplication = async (req, res) => {
     try {
-      // Upload the file to Supabase storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('vehicle_photos') // Replace with your Supabase bucket name
-        .upload(`vehicle_photos/${Date.now()}_${file.originalname}`, file.buffer);
-
-      if (uploadError) throw uploadError;
-
-      const photo_url = supabase.storage
-        .from('vehicle_photos')
-        .getPublicUrl(uploadData.path).data.publicUrl;
-
-      // Insert into the VEHICLE_APPLY table
-      const { data, error } = await supabase
-        .from('VEHICLE_APPLY')
-        .insert([
-          {
-            user_id,
-            plate_no,
-            vehicle_photo: photo_url,
-            application_date: new Date(),
-            status: 'pending',
-          },
-        ]);
-
-      if (error) throw error;
-
-      res.status(200).json({
-        message: 'Vehicle application submitted successfully.',
-        data,
-      });
-    } catch (error) {
-      res.status(500).json({
-        error: 'Error submitting vehicle application: ' + error.message,
-      });
+      const { plate_no, matric_no } = req.body;  // Assuming matric_no is passed in the request body
+      const vehicle_photo = req.file ? req.file.path : null;
+  
+      // Ensure req.user is available after authentication
+      const loggedInUserId = req.user.userid; // Assuming req.user.userid is set from JWT token
+  
+      if (!loggedInUserId) {
+        return res.status(400).json({ error: 'User ID is missing from user data' });
+      }
+  
+      console.log('Request received for vehicle application');
+      console.log('Request body:', { plate_no });
+      console.log('Uploaded file path:', vehicle_photo);
+  
+      // Step 1: Find the user based on logged-in user's userid
+      const { data: user, error: userError } = await supabase
+        .from('USER')
+        .select('userid, plate_no, matric_no')
+        .eq('userid', loggedInUserId) // Find user based on userid
+        .single();
+  
+      if (userError || !user) {
+        console.error('User not found or error:', userError?.message || 'No user for userid');
+        return res.status(404).json({ error: 'User not found for the given User ID' });
+      }
+  
+      console.log('User found:', user);
+  
+      // Step 2: Update the user's matric_no if provided and it is missing in the USER table
+      if (matric_no && !user.matric_no) {
+        const { error: updateUserError } = await supabase
+          .from('USER')
+          .update({ matric_no }) // Update the matric_no for the user
+          .eq('userid', user.userid);
+  
+        if (updateUserError) {
+          console.error('Error updating matric_no:', updateUserError.message);
+          return res.status(500).json({ error: 'Failed to update user matric_no' });
+        }
+  
+        console.log('User matric_no updated successfully');
+      }
+  
+      // Step 3: Update the user's plate number if not already set
+      if (!user.plate_no) {
+        const { error: updateUserError } = await supabase
+          .from('USER')
+          .update({ plate_no })
+          .eq('userid', user.userid);
+  
+        if (updateUserError) {
+          console.error('Error updating user plate_no:', updateUserError.message);
+          return res.status(500).json({ error: 'Failed to update user plate_no' });
+        }
+      }
+  
+      // Step 4: Insert the application into the VEHICLE_APPLY table
+      const { data: application, error: applicationError } = await supabase.from('VEHICLE_APPLY').insert([
+        {
+          UserID: user.userid,
+          Plate_No: plate_no,
+          vehicle_photo,
+          Status: 'Pending',
+          Application_Date: new Date().toISOString(),
+        },
+      ]);
+  
+      if (applicationError) {
+        console.error('Error inserting application:', applicationError.message);
+        return res.status(500).json({ error: 'Failed to submit vehicle application' });
+      }
+  
+      console.log('Application inserted successfully:', application);
+      res.status(200).json({ message: 'Application submitted successfully', application });
+    } catch (err) {
+      console.error('Server error:', err.message);
+      res.status(500).json({ error: 'An unexpected error occurred' });
     }
-  });
-};
+  };
+  
+  
 
 // Function to update vehicle application status (admin only)
 const updateVehicleStatus = async (req, res) => {
@@ -104,6 +135,6 @@ const updateVehicleStatus = async (req, res) => {
 };
 
 module.exports = {
-  applyVehicle,
+  createVehicleApplication,
   updateVehicleStatus,
 };

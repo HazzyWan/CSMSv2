@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
 const path = require('path'); // Add this line to import the 'path' module
 const bodyParser = require('body-parser');
 const { createClient } = require('@supabase/supabase-js');
@@ -9,6 +10,7 @@ const vehicleRoutes = require('./routes/vehicleRoutes');
 const fineRoutes = require('./routes/fineRoutes');
 const postRoutes = require('./routes/postRoutes');
 const { registerUser, loginUser } = require('./controllers/authController');  // Adjust the import based on your file structure
+const multerConfig = require('./middleware/multerConfig'); // Import Multer configuration
 
 // Initialize the app
 const app = express();
@@ -75,9 +77,20 @@ const initializeDatabase = async () => {
 // Routes
 app.use('/api/auth', authRoutes);  // Handling authentication-related routes
 app.use('/api/users', userRoutes); // Handle all user-related routes (admin, officer, user)
-app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/vehicle', (req, res, next) => {
+  console.log('Vehicle API route accessed');
+  next();
+}, vehicleRoutes);
 app.use('/api/fines', fineRoutes);
 app.use('/api/posts', postRoutes);
+// Ensure static files for uploads are served correctly
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+console.log('Routes loaded:');
+console.log('/api/auth', authRoutes);
+console.log('/api/users', userRoutes);
+console.log('/api/vehicles', vehicleRoutes);
+console.log('/api/fines', fineRoutes);
+console.log('/api/posts', postRoutes);
 
 // Test route for confirming server is working
 app.get('/api/test', (req, res) => {
@@ -103,3 +116,10 @@ app.post('/register', registerUser);  // Use the registerUser function
 
 // Login route
 app.post('/login', loginUser);  // Use the loginUser function
+
+app.use((err, req, res, next) => {
+  console.error('Error:', err.message);
+  res.status(500).json({ error: err.message });
+});
+
+console.log('JWT_SECRET_KEY from .env:', process.env.JWT_SECRET_KEY);
